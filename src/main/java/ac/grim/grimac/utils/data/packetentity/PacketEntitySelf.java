@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 
 public class PacketEntitySelf extends PacketEntity {
 
@@ -47,7 +48,7 @@ public class PacketEntitySelf extends PacketEntity {
             setAttribute(Attributes.STEP_HEIGHT, 0.5f);
         }
 
-        getAttribute(Attributes.SCALE).orElseThrow().withSetRewriter((oldValue, newValue) -> {
+        getAttribute(Attributes.SCALE).orElseThrow(() -> new NoSuchElementException("No value present")).withSetRewriter((oldValue, newValue) -> {
             if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_20_5) || (newValue).equals(oldValue)) {
                 return oldValue;
             } else {

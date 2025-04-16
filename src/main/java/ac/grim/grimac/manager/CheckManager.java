@@ -16,6 +16,7 @@ import ac.grim.grimac.checks.impl.exploit.ExploitA;
 import ac.grim.grimac.checks.impl.exploit.ExploitB;
 import ac.grim.grimac.checks.impl.exploit.ExploitC;
 import ac.grim.grimac.checks.impl.groundspoof.NoFall;
+import ac.grim.grimac.checks.impl.inventory.*;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.GhostBlockMitigation;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
@@ -91,6 +92,11 @@ public class CheckManager {
                 .put(TeamHandler.class, new TeamHandler(player))
                 .put(ClientBrand.class, new ClientBrand(player))
                 .put(NoFall.class, new NoFall(player))
+                .put(InventoryA.class, new InventoryA(player))
+                .put(InventoryB.class, new InventoryB(player))
+                .put(InventoryE.class, new InventoryE(player))
+                .put(InventoryF.class, new InventoryF(player))
+                .put(InventoryG.class, new InventoryG(player))
                 .put(BadPacketsO.class, new BadPacketsO(player))
                 .put(BadPacketsA.class, new BadPacketsA(player))
                 .put(BadPacketsC.class, new BadPacketsC(player))
@@ -152,7 +158,7 @@ public class CheckManager {
                 .put(SuperDebug.class, new SuperDebug(player))
                 .put(DebugHandler.class, new DebugHandler(player))
                 .put(BadPacketsX.class, new BadPacketsX(player))
-                .put(PingSpoof.class, new PingSpoof(player))
+                .put(BadPacketsZ.class, new BadPacketsZ(player))
                 .put(NoSlow.class, new NoSlow(player))
                 .put(SprintB.class, new SprintB(player))
                 .put(SprintC.class, new SprintC(player))
@@ -163,6 +169,7 @@ public class CheckManager {
                 .put(MultiInteractB.class, new MultiInteractB(player))
                 .put(ElytraA.class, new ElytraA(player))
                 .put(ElytraB.class, new ElytraB(player))
+                .put(InventoryD.class, new InventoryD(player))
                 .put(ElytraC.class, new ElytraC(player))
                 .put(ElytraD.class, new ElytraD(player))
                 .put(ElytraE.class, new ElytraE(player))
@@ -178,6 +185,7 @@ public class CheckManager {
 
         blockPlaceCheck = new ImmutableClassToInstanceMap.Builder<BlockPlaceCheck>()
                 .put(InvalidPlaceA.class, new InvalidPlaceA(player))
+                .put(InventoryC.class, new InventoryC(player))
                 .put(InvalidPlaceB.class, new InvalidPlaceB(player))
                 .put(AirLiquidPlace.class, new AirLiquidPlace(player))
                 .put(MultiPlace.class, new MultiPlace(player))
@@ -360,7 +368,9 @@ public class CheckManager {
     }
 
     private PacketEntityReplication packetEntityReplication = null;
-
+    public <T extends AbstractCheck> T getCheck(Class<T> check) {
+        return (T) allChecks.get(check);
+    }
     public PacketEntityReplication getEntityReplication() {
         if (packetEntityReplication == null) packetEntityReplication = getPacketCheck(PacketEntityReplication.class);
         return packetEntityReplication;

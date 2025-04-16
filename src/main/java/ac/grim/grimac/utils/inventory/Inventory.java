@@ -77,6 +77,18 @@ public class Inventory extends AbstractContainerMenu {
         return false;
     }
 
+    public boolean hasAnyOfItemType(ItemType... items) {
+        for (int i = 0; i < inventoryStorage.items.length; ++i) {
+            for (int j = 0; j < items.length; j++) {
+                ItemType itemType = inventoryStorage.getItem(i).getType();
+                if (itemType == items[j]) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public ItemStack getHeldItem() {
         return inventoryStorage.getItem(selected + HOTBAR_OFFSET);
     }

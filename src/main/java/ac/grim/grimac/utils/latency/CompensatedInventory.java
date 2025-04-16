@@ -48,7 +48,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
     private static final int PLAYER_INVENTORY_CASE = -1;
     private static final int UNSUPPORTED_INVENTORY_CASE = -2;
     public boolean needResend = false;
-    int openWindowID = 0;
+    public int openWindowID = 0;
     public int stateID = 0; // Don't mess up the last sent state ID by changing it
 
     public CompensatedInventory(GrimPlayer playerData) {
@@ -166,16 +166,26 @@ public class CompensatedInventory extends Check implements PacketCheck {
     }
 
     private ItemStack getByEquipmentType(EquipmentType type) {
-        return switch (type) {
-            case HEAD -> getHelmet();
-            case CHEST -> getChestplate();
-            case LEGS -> getLeggings();
-            case FEET -> getBoots();
-            case OFFHAND -> getOffHand();
-            case MAINHAND -> getHeldItem();
-        };
+        switch (type) {
+            case HEAD:
+                return getHelmet();
+            case CHEST:
+                return getChestplate();
+            case LEGS:
+                return getLeggings();
+            case FEET:
+                return getBoots();
+            case OFFHAND:
+                return getOffHand();
+            case MAINHAND:
+                return getHeldItem();
+            default:
+                return ItemStack.EMPTY;
+        }
     }
 
+
+    // Do we still need to fallback on bukkit inventories?
     public boolean hasItemType(ItemType type) {
         if (isPacketInventoryActive || player.bukkitPlayer == null) return inventory.hasItemType(type);
 
@@ -183,6 +193,20 @@ public class CompensatedInventory extends Check implements PacketCheck {
         for (org.bukkit.inventory.ItemStack item : player.bukkitPlayer.getInventory().getContents()) {
             ItemStack itemStack = SpigotConversionUtil.fromBukkitItemStack(item);
             if (itemStack != null && itemStack.getType() == type) return true;
+        }
+        return false;
+    }
+
+    public boolean hasAnyOfItemType(ItemType... items) {
+        if (isPacketInventoryActive || player.bukkitPlayer == null) return inventory.hasAnyOfItemType(items);
+
+        // Fall back to bukkit inventories
+        for (org.bukkit.inventory.ItemStack item : player.bukkitPlayer.getInventory().getContents()) {
+            ItemStack itemStack = SpigotConversionUtil.fromBukkitItemStack(item);
+            if (itemStack != null) {
+                for (ItemType itemType : items)
+                    if (itemStack.getType() == itemType) return true;
+            }
         }
         return false;
     }
@@ -268,7 +292,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
 
             boolean valid = action.getSlot() >= 1 &&
                     (PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_8) ?
-                    action.getSlot() <= 45 : action.getSlot() < 45);
+                            action.getSlot() <= 45 : action.getSlot() < 45);
 
             if (valid) {
                 player.getInventory().inventory.getSlot(action.getSlot()).set(action.getItemStack());

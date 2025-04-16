@@ -11,7 +11,6 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.component.builtin.item.FoodProperties;
-import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemConsumable;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
@@ -44,17 +43,8 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
         final ItemType material = item.getType();
 
-        // Check for data component stuff on 1.21.2+
-        final ItemConsumable consumable = item.getComponentOr(ComponentTypes.CONSUMABLE, null);
-        final FoodProperties foodComponent = item.getComponentOr(ComponentTypes.FOOD, null);
-
-        // The food component can override the consumable component, as it provides conditions for using the item
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && consumable != null && foodComponent == null) {
-            player.packetStateData.setSlowedByUsingItem(true);
-            player.packetStateData.eatingHand = hand;
-        }
-
         // Check for data component stuff on 1.20.5+
+        final FoodProperties foodComponent = item.getComponentOr(ComponentTypes.FOOD, null);
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5) && foodComponent != null) {
             if (foodComponent.isCanAlwaysEat() || player.food < 20 || player.gamemode == GameMode.CREATIVE) {
                 player.packetStateData.setSlowedByUsingItem(true);
@@ -124,17 +114,15 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         // Players in survival can't use a bow without an arrow
         // Crossbow charge checked previously
         if (material == ItemTypes.BOW || material == ItemTypes.CROSSBOW) {
-                /*player.packetStateData.slowedByUsingItem = player.gamemode == GameMode.CREATIVE ||
-                        player.getInventory().hasItemType(ItemTypes.ARROW) ||
-                        player.getInventory().hasItemType(ItemTypes.TIPPED_ARROW) ||
-                        player.getInventory().hasItemType(ItemTypes.SPECTRAL_ARROW);
-                player.packetStateData.eatingHand = place.getHand();*/
+            boolean isSlowedByUsingItem = player.gamemode == GameMode.CREATIVE ||
+                    player.getInventory().hasAnyOfItemType(ItemTypes.ARROW, ItemTypes.TIPPED_ARROW, ItemTypes.SPECTRAL_ARROW);
+            player.packetStateData.eatingHand = hand;
             // TODO: How do we lag compensate arrows? Mojang removed idle packet.
             // I think we may have to cancel the bukkit event if the player isn't slowed
             // On 1.8, it wouldn't be too bad to handle bows correctly
             // But on 1.9+, no idle packet and clients/servers don't agree on bow status
             // Mojang pls fix
-            player.packetStateData.setSlowedByUsingItem(false);
+            player.packetStateData.setSlowedByUsingItem(isSlowedByUsingItem);
         }
 
         if (material == ItemTypes.SPYGLASS && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
@@ -235,6 +223,8 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             final ItemStack item = hand == InteractionHand.MAIN_HAND ?
                     player.getInventory().getHeldItem() : player.getInventory().getOffHand();
+
+            final boolean wasSlow = player.packetStateData.isSlowedByUsingItem();
 
             handleUseItem(player, item, hand);
         }
