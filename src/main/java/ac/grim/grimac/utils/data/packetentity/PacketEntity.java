@@ -30,13 +30,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.OptionalInt;
-import java.util.UUID;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 // You may not copy this check unless your anticheat is licensed under GPL
 public class PacketEntity extends TypedPacketEntity {
@@ -53,7 +47,6 @@ public class PacketEntity extends TypedPacketEntity {
     public boolean hasGravity = true;
     private ReachInterpolationData oldPacketLocation;
     private ReachInterpolationData newPacketLocation;
-
     private Object2IntMap<PotionType> potionsMap = null;
     protected final Map<Attribute, ValuedAttribute> attributeMap = new IdentityHashMap<>();
 

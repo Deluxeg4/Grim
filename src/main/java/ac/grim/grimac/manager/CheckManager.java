@@ -1,8 +1,7 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.api.AbstractCheck;
-import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
-import ac.grim.grimac.checks.impl.aim.AimModulo360;
+import ac.grim.grimac.checks.impl.aim.*;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.badpackets.*;
 import ac.grim.grimac.checks.impl.breaking.*;
@@ -17,10 +16,14 @@ import ac.grim.grimac.checks.impl.exploit.ExploitB;
 import ac.grim.grimac.checks.impl.exploit.ExploitC;
 import ac.grim.grimac.checks.impl.groundspoof.NoFall;
 import ac.grim.grimac.checks.impl.inventory.*;
+import ac.grim.grimac.checks.impl.killaura.KillauraAccuracy;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.GhostBlockMitigation;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
-import ac.grim.grimac.checks.impl.movement.*;
+import ac.grim.grimac.checks.impl.movement.NoSlow;
+import ac.grim.grimac.checks.impl.movement.PredictionRunner;
+import ac.grim.grimac.checks.impl.movement.SetbackBlocker;
+import ac.grim.grimac.checks.impl.movement.VehiclePredictionRunner;
 import ac.grim.grimac.checks.impl.multiactions.*;
 import ac.grim.grimac.checks.impl.post.Post;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
@@ -81,6 +84,7 @@ public class CheckManager {
     public CheckManager(GrimPlayer player) {
         // Include post checks in the packet check too
         packetChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
+                .put(KillauraAccuracy.class, new KillauraAccuracy(player))
                 .put(Hitboxes.class, new Hitboxes(player))
                 .put(Reach.class, new Reach(player))
                 .put(PacketEntityReplication.class, new PacketEntityReplication(player))
@@ -140,6 +144,15 @@ public class CheckManager {
                 .put(AimProcessor.class, new AimProcessor(player))
                 .put(AimModulo360.class, new AimModulo360(player))
                 .put(AimDuplicateLook.class, new AimDuplicateLook(player))
+                .put(AimConstant.class, new AimConstant(player))
+                .put(AimConstantX.class, new AimConstantX(player))
+                .put(AimConstantY.class, new AimConstantY(player))
+                .put(AimDivisorX.class, new AimDivisorX(player))
+                .put(AimDivisorY.class, new AimDivisorY(player))
+                .put(AimStaticX.class, new AimStaticX(player))
+                .put(AimStaticY.class, new AimStaticY(player))
+                .put(AimInvalidSensitivity.class, new AimInvalidSensitivity(player))
+                .put(AimInvalidMode.class, new AimInvalidMode(player))
 //                .put(Baritone.class, new Baritone(player))
                 .build();
         vehicleCheck = new ImmutableClassToInstanceMap.Builder<VehicleCheck>()
@@ -368,11 +381,14 @@ public class CheckManager {
     }
 
     private PacketEntityReplication packetEntityReplication = null;
+
     public <T extends AbstractCheck> T getCheck(Class<T> check) {
         return (T) allChecks.get(check);
     }
+
     public PacketEntityReplication getEntityReplication() {
-        if (packetEntityReplication == null) packetEntityReplication = getPacketCheck(PacketEntityReplication.class);
+        if (packetEntityReplication == null)
+            packetEntityReplication = getPacketCheck(PacketEntityReplication.class);
         return packetEntityReplication;
     }
 

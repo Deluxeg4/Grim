@@ -129,7 +129,8 @@ public class CompensatedEntities {
 
         for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
             Attribute attribute = snapshotWrapper.getAttribute();
-            if (attribute == null) continue; // TODO: Warn if this happens? Either modded server or bug in packetevents.
+            if (attribute == null)
+                continue; // TODO: Warn if this happens? Either modded server or bug in packetevents.
 
             // Rewrite horse.jumpStrength -> modern equivalent
             if (attribute == Attributes.HORSE_JUMP_STRENGTH) {
@@ -196,6 +197,10 @@ public class CompensatedEntities {
             return self;
         }
         return entityMap.get(entityID);
+    }
+
+    public PacketEntitySelf getSelf() {
+        return self;
     }
 
     public TrackerData getTrackedEntity(int id) {
