@@ -25,11 +25,7 @@ check-for-updates: true
 client-brand:
   # プレイヤーのクライアントブランドが以下の正規表現のいずれかと一致する場合、オペレータにはそのプレイヤーの情報が送信されません。
   ignored-clients:
-    - "^vanilla$"
-    - "^fabric$"
-    - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
-    - "^Feather Fabric$"
-    - "^labymod$"
+    - "^ignoredclient$"
 
 spectators:
   # 'grim.spectator' パーミッションを持つプレイヤーを、実際にスペクテイター状態でなくても非表示にするかどうか。

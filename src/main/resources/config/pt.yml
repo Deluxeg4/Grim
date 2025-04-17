@@ -24,11 +24,7 @@ client-brand:
   # Isso signifia que, caso a marca do cliente seja igual às listadas abaixo, não será notificado aos
   # administradores.
   ignored-clients:
-    - "^vanilla$"
-    - "^fabric$"
-    - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
-    - "^Feather Fabric$"
-    - "^labymod$"
+    - "^ignoredclient$"
 
 spectators:
   # Esconde todos espectadores com a permissão 'grim.spectator' mesmo se não estiverem ativamente espectando.
