@@ -23,11 +23,7 @@ check-for-updates: true
 client-brand:
   # Это означает, что он не будет транслировать свой бренд операторам, если бренд соответствует следующим регексам
   ignored-clients:
-    - "^vanilla$"
-    - "^fabric$"
-    - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
-    - "^Feather Fabric$"
-    - "^labymod$"
+    - "^ignoredclient$"
 
 spectators:
   # Скрыть всех зрителей с разрешением grim.spectator, независимо от того, являются ли они активными зрителями.
