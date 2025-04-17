@@ -10,12 +10,12 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.*;
-import ac.grim.grimac.utils.team.EntityTeam;
-import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import ac.grim.grimac.utils.team.EntityPredicates;
+import ac.grim.grimac.utils.team.EntityTeam;
 import ac.grim.grimac.utils.team.TeamHandler;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
@@ -135,7 +135,7 @@ public class MovementTicker {
         // This is how the player checks for fall damage
         // By running fluid pushing for the player
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_4) && (!player.wasTouchingWater && (riding == null || !riding.isBoat()))) {
+        if (player.getClientVersion() != ClientVersion.V_1_21_4 && (!player.wasTouchingWater && (riding == null || !riding.isBoat()))) {
             PlayerBaseTick.updateInWaterStateAndDoWaterCurrentPushing(player);
         }
 
@@ -182,7 +182,7 @@ public class MovementTicker {
         collide = PredictionEngine.clampMovementToHardBorder(player, collide);
 
         // The game disregards movements smaller than 1e-7 (such as in boats)
-        if (collide.lengthSquared() < 1e-7
+        if (collide.lengthSquared() <= 1e-7
                 // New condition added in 1.21.2
                 && (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2) || inputVel.lengthSquared() - collide.lengthSquared() >= 1e-7)) {
             collide = new Vector();
@@ -193,6 +193,10 @@ public class MovementTicker {
 
         float f = BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
         player.clientVelocity.multiply(new Vector(f, 1, f));
+
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) {
+            return;
+        }
 
         // Reset stuck speed so it can update
         if (player.stuckSpeedMultiplier.getX() < 0.99) {
@@ -427,7 +431,24 @@ public class MovementTicker {
         }
 
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) {
+            // Reset stuck speed so it can update
+            if (player.stuckSpeedMultiplier.getX() < 0.99) {
+                player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
+            }
+
+            player.stuckSpeedMultiplier = new Vector(1, 1, 1);
+
             Collisions.applyEffectsFromBlocks(player, new Vector3d(player.lastX, player.lastY, player.lastZ), new Vector3d(player.x, player.y, player.z));
+
+            if (player.stuckSpeedMultiplier.getX() < 0.9) {
+                // Reset fall distance if stuck in block
+                player.fallDistance = 0;
+            }
+
+            // Flying players are not affected by cobwebs/sweet berry bushes
+            if (player.isFlying) {
+                player.stuckSpeedMultiplier = new Vector(1, 1, 1);
+            }
         }
     }
 

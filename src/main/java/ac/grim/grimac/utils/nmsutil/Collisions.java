@@ -31,11 +31,7 @@ import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -382,7 +378,7 @@ public class Collisions {
         return !getCollisionBoxes(player, playerBB, null, true);
     }
 
-    private static double getHorizontalDistanceSqr(Vector vector) {
+    public static double getHorizontalDistanceSqr(Vector vector) {
         return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
     }
 
@@ -724,7 +720,7 @@ public class Collisions {
         double sideDistance = (minSide - startSide) / distanceSide;
         double otherDistanceA = startOtherA + sideDistance * distanceOtherA;
         double otherDistanceB = startOtherB + sideDistance * distanceOtherB;
-        if (sideDistance > 0.0  && sideDistance < minDistance[0] &&
+        if (sideDistance > 0.0 && sideDistance < minDistance[0] &&
                 minOtherA - COLLISION_EPSILON < otherDistanceA &&
                 otherDistanceA < maxOtherA + COLLISION_EPSILON &&
                 minOtherB - COLLISION_EPSILON < otherDistanceB &&
@@ -831,9 +827,11 @@ public class Collisions {
         if (mat == StateTypes.OBSERVER || mat == StateTypes.REDSTONE_BLOCK)
             return player.getClientVersion().isNewerThan(ClientVersion.V_1_13_2);
         // Tnt only pushes on 1.14+ clients
-        if (mat == StateTypes.TNT) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
+        if (mat == StateTypes.TNT)
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
         // Farmland only pushes on 1.16+ clients
-        if (mat == StateTypes.FARMLAND) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16);
+        if (mat == StateTypes.FARMLAND)
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16);
         // 1.14-1.15 doesn't push with soul sand, the rest of the versions do
         if (mat == StateTypes.SOUL_SAND)
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) || player.getClientVersion().isOlderThan(ClientVersion.V_1_14);
@@ -849,7 +847,8 @@ public class Collisions {
         if (mat == StateTypes.DIRT_PATH)
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) || player.getClientVersion().isOlderThan(ClientVersion.V_1_9);
         // Only 1.14+ players are pushed by beacons
-        if (mat == StateTypes.BEACON) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
+        if (mat == StateTypes.BEACON)
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
 
         // Thank god I already have the solid blocking blacklist written, but all these are exempt
         if (Materials.isSolidBlockingBlacklist(mat, player.getClientVersion())) return false;
@@ -913,7 +912,8 @@ public class Collisions {
 
                             WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
 
-                            if (searchingFor.test(new Pair<>(data, new Vector3d(x, y, z)))) return true;
+                            if (searchingFor.test(new Pair<>(data, new Vector3d(x, y, z))))
+                                return true;
                         }
                     }
                 }

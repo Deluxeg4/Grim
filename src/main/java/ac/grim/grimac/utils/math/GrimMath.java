@@ -99,6 +99,10 @@ public class GrimMath {
         return value * value;
     }
 
+    public static float sqrt(float value) {
+        return (float) Math.sqrt(value);
+    }
+
     // Find the closest distance to (1 / 64)
     // All poses horizontal length is 0.2 or 0.6 (0.1 or 0.3)
     // and we call this from the player's position
@@ -126,7 +130,7 @@ public class GrimMath {
     }
 
     public static boolean isNearlySame(double a, double b, double epoch) {
-        return Math.abs(a-b) < epoch;
+        return Math.abs(a - b) < epoch;
     }
 
     public static long hashCode(double x, int y, double z) {

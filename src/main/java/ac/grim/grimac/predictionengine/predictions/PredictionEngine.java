@@ -3,10 +3,12 @@ package ac.grim.grimac.predictionengine.predictions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.SneakingEstimator;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
+import ac.grim.grimac.utils.Vec2;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.KnownInput;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
@@ -26,6 +28,12 @@ public class PredictionEngine {
     }
 
     public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
+            Vec2 moveVector = new Vec2((float) theoreticalInput.getX(), (float) theoreticalInput.getZ()).normalized();
+            Vec2 input = modifyInput(player, moveVector);
+            return new Vector(input.x, 0, input.y);
+        }
+
         float bestPossibleX;
         float bestPossibleZ;
 
@@ -55,6 +63,42 @@ public class PredictionEngine {
         }
 
         return inputVector;
+    }
+
+    private static Vec2 modifyInput(GrimPlayer player, Vec2 moveVector) {
+        if (moveVector.lengthSquared() == 0.0F) {
+            return moveVector;
+        } else {
+            Vec2 input = moveVector.scale(0.98F);
+            if (player.packetStateData.isSlowedByUsingItem() && !player.inVehicle()) {
+                input = input.scale(0.2F);
+            }
+
+            if (player.isSlowMovement) {
+                input = input.scale(player.sneakingSpeedMultiplier);
+            }
+
+            return modifyInputSpeedForSquareMovement(input);
+        }
+    }
+
+    private static Vec2 modifyInputSpeedForSquareMovement(Vec2 input) {
+        float length = input.length();
+        if (length <= 0.0F) {
+            return input;
+        } else {
+            Vec2 multiplied = input.scale(1.0F / length);
+            float distance = distanceToUnitSquare(multiplied);
+            float min = Math.min(length * distance, 1.0F);
+            return multiplied.scale(min);
+        }
+    }
+
+    private static float distanceToUnitSquare(Vec2 input) {
+        float x = Math.abs(input.x);
+        float z = Math.abs(input.y);
+        float additional = z > x ? x / z : z / x;
+        return GrimMath.sqrt(1.0F + GrimMath.square(additional));
     }
 
     public void guessBestMovement(float speed, GrimPlayer player) {
@@ -390,16 +434,23 @@ public class PredictionEngine {
         }
 
         for (VectorData vector : velocities) {
-            if (Math.abs(vector.vector.getX()) < minimumMovement) {
-                vector.vector.setX(0D);
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && !player.inVehicle()) {
+                if (Collisions.getHorizontalDistanceSqr(vector.vector) < 9.0E-6) {
+                    vector.vector.setX(0D);
+                    vector.vector.setZ(0D);
+                }
+            } else {
+                if (Math.abs(vector.vector.getX()) < minimumMovement) {
+                    vector.vector.setX(0D);
+                }
+
+                if (Math.abs(vector.vector.getZ()) < minimumMovement) {
+                    vector.vector.setZ(0D);
+                }
             }
 
             if (Math.abs(vector.vector.getY()) < minimumMovement) {
                 vector.vector.setY(0D);
-            }
-
-            if (Math.abs(vector.vector.getZ()) < minimumMovement) {
-                vector.vector.setZ(0D);
             }
         }
     }
@@ -424,63 +475,52 @@ public class PredictionEngine {
         // Order priority (to avoid false positives and false flagging future predictions):
         // Knockback and explosions
         // 0.03 ticks
-        // Movement without input
         // Normal movement
         // First bread knockback and explosions
         // Flagging groundspoof
         // Flagging flip items
         if (a.isExplosion())
-            aScore -= 10;
+            aScore -= 5;
 
         if (a.isKnockback())
-            aScore -= 10;
+            aScore -= 5;
 
         if (b.isExplosion())
-            bScore -= 10;
+            bScore -= 5;
 
         if (b.isKnockback())
-            bScore -= 10;
+            bScore -= 5;
 
         if (a.isFirstBreadExplosion())
-            aScore += 2;
+            aScore += 1;
 
         if (b.isFirstBreadExplosion())
-            bScore += 2;
+            bScore += 1;
 
         if (a.isFirstBreadKb())
-            aScore += 2;
+            aScore += 1;
 
         if (b.isFirstBreadKb())
-            bScore += 2;
+            bScore += 1;
 
         if (a.isFlipItem())
-            aScore += 6;
+            aScore += 3;
 
         if (b.isFlipItem())
-            bScore += 6;
+            bScore += 3;
 
         if (a.isZeroPointZeroThree())
-            aScore -= 2;
-
-        if (b.isZeroPointZeroThree())
-            bScore -= 2;
-
-        if (a.isWithInput() || a.isJump())
-            aScore += 1;
-        else
             aScore -= 1;
 
-        if (b.isWithInput() || b.isJump())
-            bScore += 1;
-        else
+        if (b.isZeroPointZeroThree())
             bScore -= 1;
 
         // If the player is on the ground but the vector leads the player off the ground
         if ((player.inVehicle() ? player.clientControlledVerticalCollision : player.onGround) && a.vector.getY() >= 0)
-            aScore += 4;
+            aScore += 2;
 
         if ((player.inVehicle() ? player.clientControlledVerticalCollision : player.onGround) && b.vector.getY() >= 0)
-            bScore += 4;
+            bScore += 2;
 
         if (aScore != bScore)
             return Integer.compare(aScore, bScore);
@@ -767,9 +807,9 @@ public class PredictionEngine {
                     if (loopSlowed == 1 && !possibleLastTickOutput.isZeroPointZeroThree()) continue;
                     for (int strafe = strafeMin; strafe <= strafeMax; strafe++) {
                         for (int forward = forwardMin; forward <= forwardMax; forward++) {
-                            VectorData result = new VectorData.MoveVectorData(possibleLastTickOutput.vector.clone()
+                            VectorData result = new VectorData(possibleLastTickOutput.vector.clone()
                                     .add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(strafe, 0, forward)), speed, player.xRot)),
-                                    possibleLastTickOutput, VectorData.VectorType.InputResult, forward, strafe);
+                                    possibleLastTickOutput, VectorData.VectorType.InputResult);
                             result = result.returnNewModified(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
                             result = result.returnNewModified(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
                             // Signal that we need to flip sneaking bounding box
