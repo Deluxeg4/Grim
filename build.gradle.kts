@@ -27,7 +27,8 @@ spotless {
 
 group = "ac.grim.grimac"
 version = "3"
-description = "Libre simulation anticheat designed for 1.21 with 1.8-1.21 support, powered by PacketEvents 2.0."
+description =
+    "Libre simulation anticheat designed for 1.21 with 1.8-1.21 support, powered by PacketEvents 2.0."
 
 // Set to false for debug builds
 // You cannot live reload classes if the jar relocates dependencies
@@ -41,12 +42,12 @@ repositories {
         name = "papermc"
         url = uri("https://repo.papermc.io/repository/maven-public/")
     }
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
-    maven("https://jitpack.io/") { // Grim API
-        content {
-            includeGroup("com.github.grimanticheat")
-        }
+    maven {
+        name = "grimacSnapshots"
+        url = uri("https://repo.grim.ac/snapshots")
     }
+
+    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
     maven("https://repo.viaversion.com") // ViaVersion
     maven("https://repo.aikar.co/content/groups/aikar/") // ACF
     maven("https://nexus.scarsz.me/content/repositories/releases") // Configuralize
@@ -71,7 +72,7 @@ dependencies {
 
     // Used for local testing:
     //implementation("ac.grim.grimac:GrimAPI:1.0")
-    implementation("com.github.grimanticheat:grimapi:05e31d62f2")
+    implementation("ac.grim.grimac:GrimAPI:05e31d62f2")
 
     implementation("net.kyori:adventure-text-minimessage:4.20.0")
     implementation("net.kyori:adventure-platform-bukkit:4.3.4")
@@ -161,7 +162,8 @@ bukkit {
         }
 
         register("grim.verbose.enable-on-join") {
-            description = "Enable verbose alerts on join. Requires grim.alerts and grim.alerts.enable-on-join"
+            description =
+                "Enable verbose alerts on join. Requires grim.alerts and grim.alerts.enable-on-join"
             default = Permission.Default.FALSE
         }
     }
@@ -194,8 +196,14 @@ tasks.shadowJar {
     minimize()
     archiveFileName.set("${project.name}-${project.version}.jar")
     if (relocate) {
-        relocate("io.github.retrooper.packetevents", "ac.grim.grimac.shaded.io.github.retrooper.packetevents")
-        relocate("com.github.retrooper.packetevents", "ac.grim.grimac.shaded.com.github.retrooper.packetevents")
+        relocate(
+            "io.github.retrooper.packetevents",
+            "ac.grim.grimac.shaded.io.github.retrooper.packetevents"
+        )
+        relocate(
+            "com.github.retrooper.packetevents",
+            "ac.grim.grimac.shaded.com.github.retrooper.packetevents"
+        )
         relocate("co.aikar.commands", "ac.grim.grimac.shaded.acf")
         relocate("co.aikar.locale", "ac.grim.grimac.shaded.locale")
         relocate("club.minnced", "ac.grim.grimac.shaded.discord-webhooks")
