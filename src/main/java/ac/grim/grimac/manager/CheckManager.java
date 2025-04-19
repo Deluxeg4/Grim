@@ -20,11 +20,11 @@ import ac.grim.grimac.checks.impl.killaura.KillauraAccuracy;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.GhostBlockMitigation;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
-import ac.grim.grimac.checks.impl.movement.NoSlow;
 import ac.grim.grimac.checks.impl.movement.PredictionRunner;
 import ac.grim.grimac.checks.impl.movement.SetbackBlocker;
 import ac.grim.grimac.checks.impl.movement.VehiclePredictionRunner;
 import ac.grim.grimac.checks.impl.multiactions.*;
+import ac.grim.grimac.checks.impl.noslow.*;
 import ac.grim.grimac.checks.impl.post.Post;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.GroundSpoof;
@@ -134,6 +134,7 @@ public class CheckManager {
                 .put(VehicleB.class, new VehicleB(player))
                 .put(VehicleC.class, new VehicleC(player))
                 .put(VehicleD.class, new VehicleD(player))
+                .put(NoSlowB.class, new NoSlowB(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
@@ -172,7 +173,10 @@ public class CheckManager {
                 .put(DebugHandler.class, new DebugHandler(player))
                 .put(BadPacketsX.class, new BadPacketsX(player))
                 .put(BadPacketsZ.class, new BadPacketsZ(player))
-                .put(NoSlow.class, new NoSlow(player))
+                .put(NoSlowA.class, new NoSlowA(player))
+                .put(NoSlowC.class, new NoSlowC(player))
+                .put(NoSlowD.class, new NoSlowD(player))
+                .put(NoSlowE.class, new NoSlowE(player))
                 .put(SprintB.class, new SprintB(player))
                 .put(SprintC.class, new SprintC(player))
                 .put(SprintD.class, new SprintD(player))
@@ -411,8 +415,8 @@ public class CheckManager {
         return getPositionCheck(CompensatedCooldown.class);
     }
 
-    public NoSlow getNoSlow() {
-        return getPostPredictionCheck(NoSlow.class);
+    public NoSlowA getNoSlow() {
+        return getPostPredictionCheck(NoSlowA.class);
     }
 
     public SetbackTeleportUtil getSetbackUtil() {
